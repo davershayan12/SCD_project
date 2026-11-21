@@ -11,9 +11,8 @@
 | Phase | Status | Notes |
 |-------|--------|-------|
 | Phase 0: Setup and Inspection | ✅ Complete | Approved |
-| Phase 1: Ingestion | ✅ Complete | 31/31 unit tests passing, integration tests need fixture fix |
-| Phase 1: Ingestion | ⚪ Not Started | |
-| Phase 2: Plagiarism MVP | ⚪ Not Started | |
+| Phase 1: Ingestion | ✅ Complete | 31/31 unit tests passing |
+| Phase 2: Plagiarism MVP | ✅ Complete | 54/54 unit tests passing, evaluation run (100% exact recall, 0% FP), React UI created |
 | Phase 3: Semantic and Open Access | ⚪ Not Started | |
 | Phase 4: Gap Extraction | ⚪ Not Started | |
 | Phase 5: Gap Comparison and UI | ⚪ Not Started | |
@@ -42,67 +41,46 @@
 - ✅ Database models (Document, DocumentPage, DocumentChunk)
 - ✅ RESTful API endpoints (upload, list, get, delete)
 - ✅ 31 unit tests PASSING
-- ⚠️ Integration tests (fixture issue documented)
+
+### Phase 2 ✅
+- ✅ Winnowing fingerprinting service (k-grams, mathematical detection guarantee)
+- ✅ Fuzzy matching service with RapidFuzz (region extension, exact and near-exact classification)
+- ✅ Overlap merging (guarantees zero double-counting across overlapping spans)
+- ✅ Transparent scoring service with per-source contributions
+- ✅ Report generation service with persistent disclaimers and corpus scope
+- ✅ Plagiarism detection orchestration service
+- ✅ Database models (PlagiarismReport, PlagiarismMatch)
+- ✅ REST API endpoints (POST /check, GET /reports/{id}, GET /reports, DELETE /reports/{id})
+- ✅ 23 new unit tests (54/54 total unit tests passing)
+- ✅ Evaluation benchmark script with 45 test fixtures (100% exact copy recall, 0% false positive rate)
+- ✅ Evaluation documentation (docs/TESTING_AND_EVALUATION.md)
+- ✅ Minimal React UI component (frontend/src/features/plagiarism/PlagiarismChecker.tsx)
+- ✅ Dedicated feature branch: `feature/phase-2-plagiarism-mvp` pushed to remote
 
 ---
 
 ## In Progress
 
-None - Phase 1 complete, awaiting approval for Phase 2
+None - Phase 2 complete, awaiting approval for Phase 3
 
 ---
 
 ## Not Started
 
-- Phase 0: PDF extraction spike (can proceed on laptop)
-- Phase 0: Ollama/LLM spike (blocked: requires Ollama on workstation)
-- All subsequent phases
-
----
-
-## Blockers
-
-1. **Laptop Environment**: Currently on laptop without RTX 3080 GPU or Ollama
-   - Cannot test GPU features
-   - Cannot run Ollama-based spikes
-   - Need flexible config for CPU/mock fallbacks
-   - Full testing deferred to workstation
-
----
-
-## Environment
-
-**Current (Laptop):**
-- OS: Windows 10 Pro
-- Python: 3.14.2
-- Node.js: v26.13.1
-- npm: 12.2.3
-- Git: 2.51.1.windows.1
-- GPU: None available
-- Ollama: Not installed
-
-**Target (Workstation):**
-- RTX 3080 10GB VRAM
-- 16GB RAM
-- Ollama with Qwen2.5 7B Q4 model
-- CUDA-enabled PyTorch
+- Phase 3: Semantic Embeddings and Open-Access Connectors
+- Phase 4: Research Gap Extraction (Ollama LLM)
+- Phase 5: Gap Comparison and UI
+- Phase 6: Integration and Release
 
 ---
 
 ## Next Immediate Tasks
 
-**Phase 1 Stop Gate:** Awaiting user approval to proceed to Phase 2
+**Phase 2 Stop Gate:** Awaiting user approval to proceed to Phase 3 (or tag v0.1.0)
 
-**Known Issues to Address:**
-1. Fix integration test fixtures for SQLAlchemy 2.0 compatibility
-2. Test API manually on workstation
-3. Fix Pydantic deprecation warnings (Config → ConfigDict)
-
-**When approved, Phase 2 tasks:**
-1. Implement winnowing fingerprinting
-2. Implement fuzzy matching (RapidFuzz)
-3. Build match scoring system
-4. Create plagiarism report generator
-5. Add plagiarism check API endpoint
-6. Create basic plagiarism checker UI
-7. Write evaluation tests with sample papers
+**When approved, Phase 3 tasks:**
+1. Integrate Sentence Transformers with `all-MiniLM-L6-v2` (or `bge-small-en-v1.5`)
+2. Vector store integration (ChromaDB or SQLite-vec)
+3. Open-access full text connectors (arXiv / PubMed Central APIs)
+4. Add "possible paraphrase" semantic matching layer
+5. Evaluate semantic similarity improvements on paraphrase fixtures

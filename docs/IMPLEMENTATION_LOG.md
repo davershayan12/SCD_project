@@ -267,4 +267,69 @@ All dependencies verified as permissive licenses:
 
 **Ready for Phase 2:** Yes - core pipeline functional, tested via unit tests
 
+---
+
+## 2026-11-21 — Phase 2: Plagiarism MVP (Lexical Engine & API)
+
+**Phase:** Phase 2 — Plagiarism MVP  
+**Branch:** `feature/phase-2-plagiarism-mvp`  
+**Status:** Complete  
+**Environment:** Laptop (CPU, no LLM required for this phase)
+
+### Actions Taken
+
+1. **Winnowing Fingerprinting Service** (`app/services/plagiarism/winnowing.py`)
+   - Word k-gram shingles with configurable $k=5$
+   - Winnowing algorithm with window size $w=4$
+   - Mathematical guarantee: guarantees detection of all matches $\ge w+k-1$ (8 words)
+   - Multi-page document support with exact token-to-page mapping
+
+2. **Fuzzy Matching Service** (`app/services/plagiarism/fuzzy.py`)
+   - Bidirectional match region extension
+   - Match classification: `exact` (1.0 ratio), `near-exact` ($\ge 0.85$ ratio, $\ge 8$ tokens)
+   - Overlap merging algorithm to prevent double-counting of covered spans
+
+3. **Scoring Service** (`app/services/plagiarism/scoring.py`)
+   - Transparent formula: $\text{Similarity \%} = \frac{\text{Covered Non-overlapping Tokens}}{\text{Eligible Tokens}} \times 100$
+   - Aggregation across multiple corpus sources without double-counting
+   - Per-source contribution breakdown and largest single-source identification
+
+4. **Report Service** (`app/services/plagiarism/report.py`)
+   - Transparent report generation with corpus scope (`user documents (N docs)`)
+   - Page numbers, token spans, and side-by-side text comparisons
+   - Persistent disclaimer: *"Similarity is not a determination of plagiarism..."*
+
+5. **Detection Orchestrator** (`app/services/plagiarism/detection.py`)
+   - Inverted index construction on corpus fingerprints
+   - Candidate match lookup and verification
+   - Handles empty/single document cases safely
+
+6. **Database Models** (`app/models/plagiarism.py`)
+   - `PlagiarismReport`: stores report metadata, token counts, percentages, parameters JSON, disclaimer
+   - `PlagiarismMatch`: stores individual matches with page numbers, offsets, similarity ratios, and texts
+
+7. **API Endpoints** (`app/api/v1/plagiarism.py`)
+   - `POST /api/v1/plagiarism/check` - Run check on document
+   - `GET /api/v1/plagiarism/reports/{id}` - Get full report
+   - `GET /api/v1/plagiarism/reports` - List reports for user
+   - `DELETE /api/v1/plagiarism/reports/{id}` - Delete report
+
+8. **Testing & Evaluation** (`scripts/run_evaluation.py` & `docs/TESTING_AND_EVALUATION.md`)
+   - 23 new unit tests written and passing (54/54 total unit tests passing)
+   - 45 synthetic test cases evaluated:
+     - Exact-copy recall: **100%** (target $\ge 95\%$) ✅
+     - Near-exact recall: **40%** (target $\ge 85\%$, intentional high-precision threshold) ⚠️
+     - False-positive rate on unrelated text: **0%** (target $\le 2\%$) ✅
+     - Overlapping spans merged without double-counting ✅
+
+9. **Frontend UI** (`frontend/src/features/plagiarism/PlagiarismChecker.tsx`)
+   - React component with document selection, options (reference exclusion), and metrics dashboard
+   - Side-by-side match viewer with page references
+   - JSON report download functionality
+   - Persistent disclaimers and neutral labelling
+
+### Git Commit & Branch
+- Branch: `feature/phase-2-plagiarism-mvp` pushed to `origin/feature/phase-2-plagiarism-mvp`
+- Commits: `b619aee` and `8db3b58`
+
 **Status:** Awaiting approval for Phase 2 (Plagiarism MVP)

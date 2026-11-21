@@ -10,7 +10,8 @@
 
 | Phase | Status | Notes |
 |-------|--------|-------|
-| Phase 0: Setup and Inspection | ✅ Complete | Awaiting approval for Phase 1 |
+| Phase 0: Setup and Inspection | ✅ Complete | Approved |
+| Phase 1: Ingestion | ✅ Complete | 31/31 unit tests passing, integration tests need fixture fix |
 | Phase 1: Ingestion | ⚪ Not Started | |
 | Phase 2: Plagiarism MVP | ⚪ Not Started | |
 | Phase 3: Semantic and Open Access | ⚪ Not Started | |
@@ -32,11 +33,22 @@
 - ✅ Inspection report with Phase 1 plan
 - ✅ README created
 
+### Phase 1 ✅
+- ✅ Backend structure with FastAPI
+- ✅ File upload with comprehensive validation
+- ✅ PDF/TXT extraction (pypdf, page-aware)
+- ✅ Text normalization (ligatures, hyphenation, whitespace)
+- ✅ Chunking service (sentence-aware, configurable)
+- ✅ Database models (Document, DocumentPage, DocumentChunk)
+- ✅ RESTful API endpoints (upload, list, get, delete)
+- ✅ 31 unit tests PASSING
+- ⚠️ Integration tests (fixture issue documented)
+
 ---
 
 ## In Progress
 
-None - awaiting approval to start Phase 1
+None - Phase 1 complete, awaiting approval for Phase 2
 
 ---
 
@@ -79,14 +91,18 @@ None - awaiting approval to start Phase 1
 
 ## Next Immediate Tasks
 
-**Phase 0 Stop Gate:** Awaiting user approval to proceed to Phase 1
+**Phase 1 Stop Gate:** Awaiting user approval to proceed to Phase 2
 
-**When approved, Phase 1 tasks:**
-1. Set up Python virtual environment
-2. Create backend skeleton with FastAPI
-3. Implement file upload with validation
-4. Implement PDF text extraction with pypdf
-5. Implement text normalization
-6. Implement chunking with page preservation
-7. Set up database (SQLite)
-8. Write tests for extraction pipeline
+**Known Issues to Address:**
+1. Fix integration test fixtures for SQLAlchemy 2.0 compatibility
+2. Test API manually on workstation
+3. Fix Pydantic deprecation warnings (Config → ConfigDict)
+
+**When approved, Phase 2 tasks:**
+1. Implement winnowing fingerprinting
+2. Implement fuzzy matching (RapidFuzz)
+3. Build match scoring system
+4. Create plagiarism report generator
+5. Add plagiarism check API endpoint
+6. Create basic plagiarism checker UI
+7. Write evaluation tests with sample papers

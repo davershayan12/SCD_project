@@ -1,0 +1,10 @@
+-r requirements.txt
+
+# Development tools
+black==24.10.0
+ruff==0.8.4
+mypy==1.13.0
+pip-licenses==5.0.0
+
+# Testing
+pytest-cov==6.0.0

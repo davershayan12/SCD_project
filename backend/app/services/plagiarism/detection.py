@@ -174,6 +174,8 @@ class PlagiarismDetectionService:
                             similarity_ratio=region.similarity_ratio,
                             submitted_page=sub_page,
                             source_page=src_page,
+                            source_document_id=source_doc.id,
+                            source_title=source_doc.original_filename,
                         )
                     )
 

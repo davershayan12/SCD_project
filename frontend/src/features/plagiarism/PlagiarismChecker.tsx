@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { AlertCircle, CheckCircle, FileText, Upload, Loader2, Download } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { AlertCircle, CheckCircle, FileText, Upload, Loader2, Download, Trash2 } from 'lucide-react';
 
 // Types
 interface PlagiarismMatch {
@@ -55,9 +55,13 @@ export function PlagiarismChecker() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [selectedDocId, setSelectedDocId] = useState<string>('');
   const [includeReferences, setIncludeReferences] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [report, setReport] = useState<PlagiarismReport | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load documents on mount
   React.useEffect(() => {
@@ -67,16 +71,76 @@ export function PlagiarismChecker() {
   const loadDocuments = async () => {
     try {
       const response = await fetch('/api/v1/documents');
-      const data = await response.json();
-      setDocuments(data.documents || []);
+      if (response.ok) {
+        const data = await response.json();
+        setDocuments(data.documents || []);
+      }
     } catch (err) {
       console.error('Failed to load documents:', err);
     }
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    setIsUploading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/v1/documents', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Upload failed');
+      }
+
+      const data = await response.json();
+      setSuccessMessage(`Successfully uploaded "${file.name}"`);
+      await loadDocuments();
+      setSelectedDocId(data.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDeleteDocument = async (docId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this document?')) return;
+
+    try {
+      const response = await fetch(`/api/v1/documents/${docId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        if (selectedDocId === docId) setSelectedDocId('');
+        await loadDocuments();
+      } else {
+        const errData = await response.json();
+        setError(errData.detail || 'Failed to delete document');
+      }
+    } catch (err) {
+      setError('Failed to delete document');
+    }
+  };
+
   const handleCheck = async () => {
     if (!selectedDocId) {
-      setError('Please select a document to check');
+      setError('Please select or upload a document to check');
       return;
     }
 
@@ -99,8 +163,6 @@ export function PlagiarismChecker() {
       }
 
       const data = await response.json();
-
-      // Poll for report
       await pollReport(data.report_id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -135,9 +197,9 @@ export function PlagiarismChecker() {
 
   const handleReset = () => {
     setStep('select');
-    setSelectedDocId('');
     setReport(null);
     setError(null);
+    setSuccessMessage(null);
   };
 
   return (
@@ -145,10 +207,10 @@ export function PlagiarismChecker() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Plagiarism & Similarity Checker
+          ResearchRadar — Plagiarism & Similarity Checker
         </h1>
         <p className="text-gray-600">
-          Check your document against your uploaded corpus for text similarity.
+          Upload documents, build your corpus, and run transparent lexical similarity checks.
         </p>
       </div>
 
@@ -165,7 +227,7 @@ export function PlagiarismChecker() {
         </div>
       </div>
 
-      {/* Error Alert */}
+      {/* Error & Success Alerts */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <div className="flex items-center gap-2 text-red-800">
@@ -175,56 +237,93 @@ export function PlagiarismChecker() {
         </div>
       )}
 
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center gap-2 text-green-800">
+            <CheckCircle className="w-5 h-5" />
+            <span>{successMessage}</span>
+          </div>
+        </div>
+      )}
+
       {/* Step 1: Select Document */}
       {step === 'select' && (
         <div className="space-y-6">
-          {/* Document Selection */}
+          {/* Upload Dropzone */}
+          <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept=".pdf,.txt"
+              className="hidden"
+              id="file-upload"
+            />
+            <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center">
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-3" />
+                  <p className="text-lg font-medium text-gray-700">Processing and extracting text...</p>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-12 h-12 text-gray-400 mb-3" />
+                  <p className="text-lg font-medium text-gray-700">
+                    Drop your PDF or TXT file here, or <span className="text-blue-600 underline">browse</span>
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Supports text-based PDF and TXT files up to 50MB
+                  </p>
+                </>
+              )}
+            </label>
+          </div>
+
+          {/* Document Selection List */}
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
-              Select a Document
+              Your Uploaded Corpus ({documents.length} documents)
             </h2>
 
             {documents.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p>No documents uploaded yet.</p>
-                <p className="text-sm mt-1">
-                  Upload a document first to check it for similarity.
-                </p>
+              <div className="text-center py-6 text-gray-500">
+                <p>No documents uploaded yet. Upload a document above to get started.</p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-64 overflow-y-auto">
                 {documents.map((doc) => (
-                  <label
+                  <div
                     key={doc.id}
+                    onClick={() => setSelectedDocId(doc.id)}
                     className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
                       selectedDocId === doc.id
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:bg-gray-50'
                     }`}
                   >
-                    <input
-                      type="radio"
-                      name="document"
-                      value={doc.id}
-                      checked={selectedDocId === doc.id}
-                      onChange={() => setSelectedDocId(doc.id)}
-                      className="sr-only"
-                    />
                     <FileText className="w-5 h-5 text-gray-400 mr-3" />
                     <div className="flex-1">
                       <p className="font-medium text-gray-900">
                         {doc.original_filename}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {doc.total_pages} pages • Uploaded{' '}
+                        {doc.total_pages} page(s) • Uploaded{' '}
                         {new Date(doc.created_at).toLocaleDateString()}
                       </p>
                     </div>
                     {selectedDocId === doc.id && (
-                      <CheckCircle className="w-5 h-5 text-blue-600" />
+                      <span className="text-xs bg-blue-100 text-blue-800 font-medium px-2.5 py-1 rounded mr-3">
+                        Selected for Check
+                      </span>
                     )}
-                  </label>
+                    <button
+                      onClick={(e) => handleDeleteDocument(doc.id, e)}
+                      className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                      title="Delete document"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -233,7 +332,7 @@ export function PlagiarismChecker() {
           {/* Options */}
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
-              Options
+              Analysis Options
             </h2>
 
             <label className="flex items-center">
@@ -249,9 +348,7 @@ export function PlagiarismChecker() {
             </label>
 
             <p className="text-xs text-gray-500 mt-2 ml-6">
-              Unchecking this will exclude the references section from similarity
-              analysis. The references section often contains many matches that
-              are not indicative of plagiarism.
+              Unchecking this will exclude references from similarity analysis.
             </p>
           </div>
 
@@ -259,17 +356,17 @@ export function PlagiarismChecker() {
           <button
             onClick={handleCheck}
             disabled={!selectedDocId || isChecking || documents.length === 0}
-            className="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow"
           >
             {isChecking ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Checking...
+                Analyzing Document...
               </>
             ) : (
               <>
                 <Upload className="w-5 h-5" />
-                Run Similarity Check
+                Run Similarity Check against Corpus
               </>
             )}
           </button>
@@ -351,7 +448,7 @@ export function PlagiarismChecker() {
               </h3>
               <p className="text-green-700">
                 Your document did not contain any significant similarities with
-                documents in your corpus.
+                other documents in your corpus.
               </p>
             </div>
           )}

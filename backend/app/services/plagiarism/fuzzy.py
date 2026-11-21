@@ -33,6 +33,8 @@ class ClassifiedMatch:
     similarity_ratio: float
     submitted_page: int
     source_page: int
+    source_document_id: Optional[str] = None
+    source_title: Optional[str] = None
 
 
 class FuzzyMatchingService:

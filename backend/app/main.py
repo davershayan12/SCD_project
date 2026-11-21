@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from app.api.v1 import documents, plagiarism
+from app.api.v1 import documents, plagiarism, research
 from app.core.errors import ResearchRadarError
 from app.db.session import init_db
 
@@ -40,6 +40,7 @@ async def research_radar_exception_handler(request: Request, exc: ResearchRadarE
 # Include routers
 app.include_router(documents.router)
 app.include_router(plagiarism.router)
+app.include_router(research.router)
 
 
 @app.get("/")

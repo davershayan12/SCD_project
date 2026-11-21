@@ -12,17 +12,20 @@ All dependencies and models used in ResearchRadar must have permissive licenses.
 
 | Package | Version | License | Verified Date | Notes |
 |---------|---------|---------|---------------|-------|
-| TBD | TBD | TBD | TBD | To be added in Phase 1 |
-
-**Key dependencies to verify:**
-- FastAPI → MIT
-- Pydantic → MIT
-- pypdf (NOT PyMuPDF) → BSD
-- RapidFuzz → MIT
-- scikit-learn → BSD
-- Sentence Transformers → Apache-2.0
-- ChromaDB → Apache-2.0
-- pytest → MIT
+| fastapi | 0.165.0 | MIT | 2026-11-21 | ✓ |
+| uvicorn | 0.54.0 | BSD-3-Clause | 2026-11-21 | ✓ |
+| pydantic | 2.14.4 | MIT | 2026-11-21 | ✓ |
+| pydantic-settings | 2.16.3 | MIT | 2026-11-21 | ✓ |
+| python-multipart | 0.0.34 | Apache-2.0 | 2026-11-21 | ✓ |
+| sqlalchemy | 2.1.9 | MIT | 2026-11-21 | ✓ |
+| alembic | 1.20.1 | MIT | 2026-11-21 | ✓ |
+| pypdf | 7.1.1 | BSD-3-Clause | 2026-11-21 | ✓ NOT PyMuPDF (AGPL) |
+| rapidfuzz | 3.14.6 | MIT | 2026-11-21 | ✓ |
+| scikit-learn | 1.9.1 | BSD-3-Clause | 2026-11-21 | ✓ |
+| pytest | 9.2.0 | MIT | 2026-11-21 | ✓ |
+| pytest-asyncio | 1.5.0 | Apache-2.0 | 2026-11-21 | ✓ |
+| httpx | 0.28.1 | BSD-3-Clause | 2026-11-21 | ✓ |
+| python-dotenv | 1.2.4 | BSD-3-Clause | 2026-11-21 | ✓ |
 
 ---
 

@@ -22,6 +22,8 @@ All dependencies and models used in ResearchRadar must have permissive licenses.
 | pypdf | 7.1.1 | BSD-3-Clause | 2026-11-21 | ✓ NOT PyMuPDF (AGPL) |
 | rapidfuzz | 3.14.6 | MIT | 2026-11-21 | ✓ |
 | scikit-learn | 1.9.1 | BSD-3-Clause | 2026-11-21 | ✓ |
+| chromadb | 1.5.9 | Apache-2.0 | 2026-11-21 | ✓ Vector Store |
+| sentence-transformers | 6.3.0 | Apache-2.0 | 2026-11-21 | ✓ Embeddings |
 | pytest | 9.2.0 | MIT | 2026-11-21 | ✓ |
 | pytest-asyncio | 1.5.0 | Apache-2.0 | 2026-11-21 | ✓ |
 | httpx | 0.28.1 | BSD-3-Clause | 2026-11-21 | ✓ |

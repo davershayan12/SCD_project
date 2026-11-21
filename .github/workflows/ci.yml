@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # Placeholder: requirements.txt will be created in Phase 1
+        # pip install -r backend/requirements.txt
+        pip install pip-licenses
+
+    - name: Run tests
+      run: |
+        # Placeholder: tests will be added in subsequent phases
+        echo "Backend tests placeholder - to be implemented"
+        # pytest backend/tests/
+
+    - name: Check licenses
+      run: |
+        # Placeholder: will check actual dependencies once they exist
+        echo "License check placeholder - to be implemented"
+        # pip-licenses --fail-on="AGPL;GPL" --allow-only="MIT;Apache-2.0;BSD;ISC;PSF"
+
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: |
+        # Placeholder: frontend will be created in later phases
+        echo "Frontend setup placeholder - to be implemented"
+        # cd frontend && npm ci
+
+    - name: Run linter
+      run: |
+        # Placeholder: to be implemented
+        echo "Linting placeholder - to be implemented"
+        # cd frontend && npm run lint
+
+    - name: Run tests
+      run: |
+        # Placeholder: to be implemented
+        echo "Frontend tests placeholder - to be implemented"
+        # cd frontend && npm test
+
+    - name: Check licenses
+      run: |
+        # Placeholder: will check actual dependencies once they exist
+        echo "License check placeholder - to be implemented"
+        # cd frontend && npx license-checker --onlyAllow="MIT;Apache-2.0;BSD;ISC" --failOn="AGPL;GPL"
+
+  license-check:
+    name: License Verification
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Verify documentation
+      run: |
+        echo "Checking license documentation exists..."
+        test -f LICENSE
+        test -f docs/OPEN_SOURCE_LICENSES.md
+        test -f tests/fixtures/DATA_LICENSES.md
+        test -f SECURITY.md
+        test -f CONTRIBUTING.md
+        test -f CODE_OF_CONDUCT.md
+        echo "✓ All required documentation files present"

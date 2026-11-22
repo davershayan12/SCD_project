@@ -19,6 +19,14 @@ class PlagiarismCheckRequest(BaseModel):
         default=True,
         description="Whether to include references section in the check",
     )
+    online_mode: bool = Field(
+        default=False,
+        description="Explicit privacy opt-in to check online open-access scholarly APIs",
+    )
+    custom_urls: Optional[List[str]] = Field(
+        default=None,
+        description="Optional list of custom URLs to check against",
+    )
 
 
 class PlagiarismCheckTextRequest(BaseModel):

@@ -188,22 +188,10 @@ class PlagiarismDetectionService:
         user_id: str,
         compare_with: Optional[List[str]] = None,
         include_references: bool = True,
+        online_mode: bool = False,
+        custom_urls: Optional[List[str]] = None,
     ) -> str:
-        """Check a document for plagiarism against corpus.
-
-        Args:
-            document_id: ID of document to check
-            db: Database session
-            user_id: Current user ID
-            compare_with: Specific document IDs to compare (None = all user docs)
-            include_references: Whether to include references in check
-
-        Returns:
-            Report ID
-
-        Raises:
-            NotFoundError: If document not found
-        """
+        """Check a document for plagiarism against corpus and optional online sources."""
         # Get submitted document
         from sqlalchemy import select
 
@@ -225,18 +213,45 @@ class PlagiarismDetectionService:
         if compare_with:
             query = query.where(Document.id.in_(compare_with))
 
-        corpus_docs = db.scalars(query).all()
-
-        if not corpus_docs:
-            # No corpus to compare against
-            return self._create_empty_report(
-                document_id, 0, include_references, db
-            )
+        corpus_docs = list(db.scalars(query).all())
 
         # Extract text from submitted document
         submitted_pages = [
             (page.normalized_text, page.page_number) for page in submitted_doc.pages
         ]
+        submitted_text = " ".join(text for text, _ in submitted_pages)
+
+        # If online mode or custom URLs requested, fetch external sources
+        external_docs_info = []
+        if online_mode or custom_urls:
+            from app.services.connectors.scholarly import ScholarlySearchService
+            from app.services.plagiarism.query_selector import QuerySelector
+
+            scholarly = ScholarlySearchService()
+            selector = QuerySelector(phrase_words=8)
+            queries = selector.select_queries(submitted_text, max_queries=5)
+
+            external_sources = []
+            if custom_urls:
+                external_sources.extend(scholarly.fetch_custom_urls(custom_urls))
+
+            if online_mode:
+                for q in queries:
+                    external_sources.extend(scholarly.search_scholarly_apis(q, limit=2))
+
+            # Convert external sources into temporary Document-like mock objects or indexed entries
+            for ext in external_sources:
+                corpus_info_dict = {
+                    "id": ext.url,
+                    "title": f"[{ext.repository}] {ext.title}",
+                    "text": ext.text,
+                }
+                external_docs_info.append(corpus_info_dict)
+
+        if not corpus_docs and not external_docs_info:
+            return self._create_empty_report(
+                document_id, 0, include_references, db
+            )
 
         # Generate fingerprints for submitted document
         (

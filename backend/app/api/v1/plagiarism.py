@@ -74,6 +74,8 @@ async def check_document_plagiarism(
             user_id=user_id,
             compare_with=request.compare_with,
             include_references=request.include_references,
+            online_mode=request.online_mode,
+            custom_urls=request.custom_urls,
         )
 
         return PlagiarismCheckResponse(

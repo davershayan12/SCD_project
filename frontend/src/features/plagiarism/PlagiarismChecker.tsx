@@ -67,6 +67,8 @@ export function PlagiarismChecker() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [selectedDocId, setSelectedDocId] = useState<string>('');
   const [includeReferences, setIncludeReferences] = useState(true);
+  const [onlineMode, setOnlineMode] = useState(false);
+  const [customUrlsInput, setCustomUrlsInput] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [report, setReport] = useState<PlagiarismReport | null>(null);
@@ -164,12 +166,18 @@ export function PlagiarismChecker() {
     setError(null);
 
     try {
+      const urls = customUrlsInput
+        ? customUrlsInput.split('\n').map(u => u.trim()).filter(Boolean)
+        : undefined;
+
       const response = await fetch('/api/v1/plagiarism/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           document_id: selectedDocId,
           include_references: includeReferences,
+          online_mode: onlineMode,
+          custom_urls: urls,
         }),
       });
 
@@ -355,9 +363,9 @@ export function PlagiarismChecker() {
           </div>
 
           {/* Options */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
-              Analysis Options
+          <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+            <h2 className="text-lg font-medium text-gray-900">
+              Analysis Options & Privacy Controls
             </h2>
 
             <label className="flex items-center">
@@ -372,9 +380,38 @@ export function PlagiarismChecker() {
               </span>
             </label>
 
-            <p className="text-xs text-gray-500 mt-2 ml-6">
-              Unchecking this will exclude references from similarity analysis.
-            </p>
+            <div className="pt-2 border-t">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={onlineMode}
+                  onChange={(e) => setOnlineMode(e.target.checked)}
+                  className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                />
+                <span className="ml-2 font-medium text-gray-900">
+                  Enable Online Scholarly Search (arXiv / OpenAlex)
+                </span>
+              </label>
+
+              {onlineMode && (
+                <div className="mt-2 bg-orange-50 border border-orange-200 rounded-lg p-3 text-xs text-orange-800">
+                  ⚠️ <strong>Privacy Warning:</strong> Online mode is off by default. By enabling it, short distinctive query phrases from your document will be sent to open-access scholarly APIs. <strong>Confidential documents should not be checked online.</strong>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2 border-t">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Custom URLs to check against (one per line, optional):
+              </label>
+              <textarea
+                value={customUrlsInput}
+                onChange={(e) => setCustomUrlsInput(e.target.value)}
+                placeholder="https://example.com/paper-source.html"
+                rows={2}
+                className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
           </div>
 
           {/* Action */}
